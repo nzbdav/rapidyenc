@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "error opening input: %s\n", strerror(errno));
 		return 1;
 	}
-	FILE* outfile = stdout; // fopen("", "rb");
+	FILE* outfile = stdout; // fopen("", "wb");
 	if(!outfile) {
 		fprintf(stderr, "error opening output: %s\n", strerror(errno));
 		fclose(infile);
@@ -153,5 +153,5 @@ int main(int argc, char **argv) {
 #endif
 	}
 	
-	return 0;
+	return has_error;
 }
