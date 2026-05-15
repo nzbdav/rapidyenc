@@ -37,6 +37,8 @@ The following options can be passed into CMake:
 * **DISABLE_ENCODE**: Remove yEnc encode functionality from build. `rapidyenc_encode`* functions, except `rapidyenc_encode_max_length`, will be unavailable
 * **DISABLE_DECODE**: Remove yEnc decode functionality from build. `rapidyenc_decode`* functions will be unavailable
 * **DISABLE_CRC**: Remove CRC32 functionality from build. `rapidyenc_crc`* functions will be unavailable. Implies *DISABLE_CRCUTIL*
+* **DISABLE_TOOL**: Don't build the bench/cli tool applications
+* **DISABLE_SHARED**: Don't build the shared library
 
 API
 ===

@@ -8,6 +8,9 @@ option(DISABLE_ENCODE "Exclude yEnc encoder from build" OFF)
 option(DISABLE_DECODE "Exclude yEnc decoder from build" OFF)
 option(DISABLE_CRC "Exclude CRC32 functions from build" OFF)
 
+option(DISABLE_SHARED "Don't build shared library" OFF)
+option(DISABLE_TOOL "Don't build tool applications" OFF)
+
 include(CheckCXXCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckCXXSymbolExists)
@@ -259,17 +262,21 @@ if(NOT MSVC OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 
-add_library(rapidyenc_shared SHARED $<TARGET_OBJECTS:rapidyenc> ./rapidyenc.cc)
-target_compile_definitions(rapidyenc_shared PUBLIC BUILD_SHARED=1)
 add_library(rapidyenc_static STATIC $<TARGET_OBJECTS:rapidyenc> ./rapidyenc.cc)
 # suggestion from https://stackoverflow.com/a/67027398/459150
 set_target_properties(rapidyenc_static PROPERTIES OUTPUT_NAME rapidyenc ARCHIVE_OUTPUT_DIRECTORY rapidyenc_static)
-set_target_properties(rapidyenc_shared PROPERTIES OUTPUT_NAME rapidyenc ARCHIVE_OUTPUT_DIRECTORY rapidyenc_shared)
+if(NOT DISABLE_SHARED)
+	add_library(rapidyenc_shared SHARED $<TARGET_OBJECTS:rapidyenc> ./rapidyenc.cc)
+	target_compile_definitions(rapidyenc_shared PUBLIC BUILD_SHARED=1)
+	set_target_properties(rapidyenc_shared PROPERTIES OUTPUT_NAME rapidyenc ARCHIVE_OUTPUT_DIRECTORY rapidyenc_shared)
+endif()
 
 
 # binaries
-add_executable(rapidyenc_cli tool/cli.c)
-target_link_libraries(rapidyenc_cli rapidyenc_static)
-add_executable(rapidyenc_bench tool/bench.cc)
-target_link_libraries(rapidyenc_bench rapidyenc_static)
-target_compile_features(rapidyenc_bench PUBLIC cxx_std_11)
+if(NOT DISABLE_TOOL)
+	add_executable(rapidyenc_cli tool/cli.c)
+	target_link_libraries(rapidyenc_cli rapidyenc_static)
+	add_executable(rapidyenc_bench tool/bench.cc)
+	target_link_libraries(rapidyenc_bench rapidyenc_static)
+	target_compile_features(rapidyenc_bench PUBLIC cxx_std_11)
+endif()
