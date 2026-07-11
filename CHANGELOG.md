@@ -3,6 +3,13 @@
 All notable changes to rapidyenc are documented in this file. Future entries
 are maintained by Release Please from Conventional Commit history.
 
+## [1.2.1](https://github.com/nzbdav/rapidyenc/compare/v1.2.0...v1.2.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **ci:** target release repository explicitly ([1c932b9](https://github.com/nzbdav/rapidyenc/commit/1c932b9ddafa3707389f5902b99b58fa35cca599))
+
 ## [1.2.0](https://github.com/nzbdav/rapidyenc/compare/v1.1.1...v1.2.0) (2026-07-11)
 
 
