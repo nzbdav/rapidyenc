@@ -3,6 +3,11 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef _WIN32
+# include <fcntl.h>
+# include <io.h>
+#endif
+
 #include "../rapidyenc.h"
 
 static int print_usage(const char *app) {
@@ -20,6 +25,14 @@ int main(int argc, char **argv) {
 		return print_usage(argv[0]);
 	if(argv[1][0] != 'e' && argv[1][0] != 'd')
 		return print_usage(argv[0]);
+
+#ifdef _WIN32
+	if(_setmode(_fileno(stdin), _O_BINARY) == -1 ||
+		_setmode(_fileno(stdout), _O_BINARY) == -1) {
+		fprintf(stderr, "error enabling binary standard I/O: %s\n", strerror(errno));
+		return 1;
+	}
+#endif
 	
 #ifdef RAPIDYENC_DISABLE_ENCODE
 	if(argv[1][0] == 'e') {
