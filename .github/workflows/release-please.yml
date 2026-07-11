@@ -28,6 +28,7 @@ jobs:
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          target-branch: main
 
   publish:
     needs: release-please
