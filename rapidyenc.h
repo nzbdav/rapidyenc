@@ -15,8 +15,8 @@ extern "C" {
  * Version, in 0xMMmmpp format, where MM=major version, mm=minor version, pp=patch version
  */
 #define RAPIDYENC_VERSION_MAJOR 1 // x-release-please-major
-#define RAPIDYENC_VERSION_MINOR 1 // x-release-please-minor
-#define RAPIDYENC_VERSION_PATCH 1 // x-release-please-patch
+#define RAPIDYENC_VERSION_MINOR 2 // x-release-please-minor
+#define RAPIDYENC_VERSION_PATCH 0 // x-release-please-patch
 #define RAPIDYENC_VERSION ((RAPIDYENC_VERSION_MAJOR << 16) | (RAPIDYENC_VERSION_MINOR << 8) | RAPIDYENC_VERSION_PATCH)
 RAPIDYENC_API int rapidyenc_version(void); // returns RAPIDYENC_VERSION
 
