@@ -1,0 +1,137 @@
+name: Publish Release Assets
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: Release tag to publish
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing release tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ inputs.tag_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ inputs.tag_name }}
+
+jobs:
+  build:
+    name: Build ${{ matrix.rid }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            runner: ubuntu-24.04
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+          - rid: win-x64
+            runner: windows-latest
+          - rid: osx-x64
+            runner: macos-26-intel
+          - rid: osx-arm64
+            runner: macos-26
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Verify tag and source version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < version.txt)"
+          test "${RELEASE_TAG}" = "v${version}"
+          python - "$version" <<'PY'
+          import re
+          import sys
+
+          header = open("rapidyenc.h", encoding="utf-8").read()
+          parts = re.findall(r"#define RAPIDYENC_VERSION_(?:MAJOR|MINOR|PATCH) (\d+)", header)
+          if ".".join(parts) != sys.argv[1]:
+              raise SystemExit("rapidyenc.h version does not match version.txt")
+          PY
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_NATIVE=OFF
+
+      - name: Build shared library and CLI
+        run: cmake --build build --config Release --target rapidyenc_shared rapidyenc_cli
+
+      - name: Verify native CLI round trip
+        shell: python
+        run: |
+          import pathlib
+          import subprocess
+          import sys
+
+          candidates = [
+              pathlib.Path("build/rapidyenc_cli"),
+              pathlib.Path("build/Release/rapidyenc_cli.exe"),
+              pathlib.Path("build/Release/rapidyenc_cli"),
+          ]
+          cli = next((path for path in candidates if path.exists()), None)
+          if cli is None:
+              sys.exit("rapidyenc_cli was not built")
+          payload = b"rapidyenc release round trip\n\x00\xff"
+          encoded = subprocess.run([str(cli), "e"], input=payload, check=True, capture_output=True).stdout
+          decoded = subprocess.run([str(cli), "d"], input=encoded, check=True, capture_output=True).stdout
+          if decoded != payload:
+              sys.exit("CLI round trip changed the payload")
+
+      - name: Package release archive
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < version.txt)"
+          python scripts/package_release.py --build-dir build --rid "${{ matrix.rid }}" --version "${version}" --output-dir artifacts
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.rid }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Download release archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd artifacts
+          sha256sum rapidyenc-* > SHA256SUMS
+
+      - name: Attest release archives
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: artifacts/*
+
+      - name: Upload assets to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ env.RELEASE_TAG }}" artifacts/* --clobber

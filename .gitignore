@@ -1,0 +1,25 @@
+# CMake build trees and generated artifacts
+/build/
+/cmake-build-*/
+/artifacts/
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/Makefile
+/compile_commands.json
+
+# Compiled outputs
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-and-smoke-test:
+    name: ${{ matrix.rid }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            runner: ubuntu-24.04
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+          - rid: win-x64
+            runner: windows-latest
+          - rid: osx-x64
+            runner: macos-26-intel
+          - rid: osx-arm64
+            runner: macos-26
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_NATIVE=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run CLI round trip
+        shell: python
+        run: |
+          import pathlib
+          import subprocess
+          import sys
+
+          candidates = [
+              pathlib.Path("build/rapidyenc_cli"),
+              pathlib.Path("build/Release/rapidyenc_cli.exe"),
+              pathlib.Path("build/Release/rapidyenc_cli"),
+          ]
+          cli = next((path for path in candidates if path.exists()), None)
+          if cli is None:
+              sys.exit("rapidyenc_cli was not built")
+
+          payload = b"rapidyenc CI round trip\n\x00\xff"
+          encoded = subprocess.run([str(cli), "e"], input=payload, check=True, capture_output=True).stdout
+          decoded = subprocess.run([str(cli), "d"], input=encoded, check=True, capture_output=True).stdout
+          if decoded != payload:
+              sys.exit("CLI round trip changed the payload")

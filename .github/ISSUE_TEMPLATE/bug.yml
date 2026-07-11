@@ -1,0 +1,36 @@
+name: Bug report
+description: Report incorrect behavior, a build failure, or a performance regression.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include security-sensitive details here. Use the private reporting process in SECURITY.md instead.
+  - type: input
+    id: version
+    attributes:
+      label: rapidyenc version
+      description: Release tag or RAPIDYENC_VERSION value.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, compiler and version, CPU architecture/model, and CMake generator.
+      placeholder: "Ubuntu 24.04, clang 18, x86_64, Ninja"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include input, API calls, expected result, and actual result.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Kernel and performance impact
+      description: Include selected kernel, benchmark output, or regression details when relevant.
