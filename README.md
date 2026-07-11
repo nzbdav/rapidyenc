@@ -32,6 +32,19 @@ Note that it only handles the underlying encoding/decoding routines - yEnc heade
 - No downloaded build dependencies. `crcutil-1.0/` is a vendored, x86-only
   acceleration dependency.
 
+### crcutil provenance
+
+`crcutil-1.0/` is the final upstream crcutil 1.0 source release from the
+archived Google Code project. It is kept in-tree because crcutil has no current
+cross-platform CMake package and release builds must remain reproducible on
+Linux, macOS, and Windows.
+
+rapidyenc uses crcutil only as the generic IEEE CRC32 fallback on x86. At
+runtime, CPUs with PCLMULQDQ or VPCLMULQDQ use rapidyenc's folding kernels
+instead. Consumers whose minimum x86 CPU supports PCLMULQDQ may build with
+`-DDISABLE_CRCUTIL=ON`; the built-in generic implementation remains available
+for other architectures and fallback cases.
+
 ## Build
 
 Use an out-of-tree Release build:

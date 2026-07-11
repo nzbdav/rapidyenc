@@ -14,6 +14,7 @@ option(DISABLE_TOOL "Don't build tool applications" OFF)
 include(CheckCXXCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckCXXSymbolExists)
+include(CTest)
 
 set(CMAKE_CXX_STANDARD 98)
 
@@ -269,6 +270,12 @@ if(NOT DISABLE_SHARED)
 	add_library(rapidyenc_shared SHARED $<TARGET_OBJECTS:rapidyenc> ./rapidyenc.cc)
 	target_compile_definitions(rapidyenc_shared PUBLIC BUILD_SHARED=1)
 	set_target_properties(rapidyenc_shared PROPERTIES OUTPUT_NAME rapidyenc ARCHIVE_OUTPUT_DIRECTORY rapidyenc_shared)
+endif()
+
+if(BUILD_TESTING)
+	add_executable(rapidyenc_tests test/test_rapidyenc.c)
+	target_link_libraries(rapidyenc_tests rapidyenc_static)
+	add_test(NAME rapidyenc_tests COMMAND rapidyenc_tests)
 endif()
 
 

@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build-and-smoke-test:
+  build-and-test:
     name: ${{ matrix.rid }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -43,6 +43,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      - name: Run CTest suite
+        run: ctest --test-dir build -C Release --output-on-failure
+
       - name: Run CLI round trip
         shell: python
         run: |
@@ -64,3 +67,38 @@ jobs:
           decoded = subprocess.run([str(cli), "d"], input=encoded, check=True, capture_output=True).stdout
           if decoded != payload:
               sys.exit("CLI round trip changed the payload")
+
+      - name: Run informational benchmark
+        continue-on-error: true
+        shell: python
+        env:
+          RAPIDYENC_RID: ${{ matrix.rid }}
+        run: |
+          import os
+          import pathlib
+          import subprocess
+          import sys
+
+          candidates = [
+              pathlib.Path("build/rapidyenc_bench"),
+              pathlib.Path("build/Release/rapidyenc_bench.exe"),
+              pathlib.Path("build/Release/rapidyenc_bench"),
+          ]
+          benchmark = next((path for path in candidates if path.exists()), None)
+          if benchmark is None:
+              sys.exit("rapidyenc_bench was not built")
+
+          result = subprocess.run(
+              [str(benchmark)],
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          output = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
+          print(output)
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"### rapidyenc benchmark ({os.environ['RAPIDYENC_RID']})\n\n")
+              summary.write("```text\n")
+              summary.write(output)
+              summary.write("\n```\n")
