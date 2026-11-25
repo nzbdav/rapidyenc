@@ -3,6 +3,15 @@
 All notable changes to rapidyenc are documented in this file. Future entries
 are maintained by Release Please from Conventional Commit history.
 
+## [1.2.2](https://github.com/nzbdav/rapidyenc/compare/v1.2.1...v1.2.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** bump actions/download-artifact in the github-actions group ([#3](https://github.com/nzbdav/rapidyenc/issues/3)) ([b2b2eda](https://github.com/nzbdav/rapidyenc/commit/b2b2eda5618220fdbfd6869091075df058abff29))
+* **deps:** bump the github-actions group across 1 directory with 7 updates ([#9](https://github.com/nzbdav/rapidyenc/issues/9)) ([1372a2f](https://github.com/nzbdav/rapidyenc/commit/1372a2f1da1cb3fe656a25e4cc988470013a3a51))
+* **deps:** bump the github-actions group with 2 updates ([#5](https://github.com/nzbdav/rapidyenc/issues/5)) ([fd0bb46](https://github.com/nzbdav/rapidyenc/commit/fd0bb46456a72bbd74809c38e57d40cd1ccc6da7))
+
 ## [1.2.1](https://github.com/nzbdav/rapidyenc/compare/v1.2.0...v1.2.1) (2026-07-11)
 
 
